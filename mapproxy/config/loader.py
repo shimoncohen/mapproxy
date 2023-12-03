@@ -1349,9 +1349,10 @@ class CacheConfiguration(ConfigurationBase):
         ssl_certfile = self.conf['cache'].get('ssl_certfile',None)
         ssl_keyfile = self.conf['cache'].get('ssl_keyfile', None)
         ssl_ca_certs = self.conf['cache'].get('ssl_ca_certs', None)
-        prefix = self.conf['cache'].get('prefix')
-        if not prefix:
-            prefix = self.conf['name'] + '_' + grid_conf.tile_grid().name
+        cache_prefix = self.conf['cache'].get('prefix')
+        prefix = self.conf['name'] + '_' + grid_conf.tile_grid().name
+        if cache_prefix:
+            prefix = cache_prefix + '_' + prefix
 
         return RedisCache(
             host=host,
