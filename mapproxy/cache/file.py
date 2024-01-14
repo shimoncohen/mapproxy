@@ -53,12 +53,13 @@ class FileCache(TileCacheBase):
             items = list(dimensions.keys())
             items.sort()
             dimensions_str = ['{key}-{value}'.format(key=i, value=dimensions[i].replace('/', '_')) for i in items]
+            cache_dir = os.path.join(self.cache_dir, '_'.join(dimensions_str))
         
         file_ext = self.file_ext
         if self.is_mixed and tile.source:
             data = tile.source.as_buffer()
             file_ext = peek_image_format(data)
-        location = self._tile_location(tile, self.cache_dir, file_ext, create_dir=create_dir, dimensions=dimensions)
+        location = self._tile_location(tile, cache_dir, file_ext, create_dir=create_dir, dimensions=dimensions)
         tile.location = location
         return location
 
