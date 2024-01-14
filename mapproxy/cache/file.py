@@ -18,7 +18,7 @@ import errno
 import hashlib
 
 from mapproxy.util.fs import ensure_directory, write_atomic
-from mapproxy.image import ImageSource, is_single_color_image
+from mapproxy.image import ImageSource, is_single_color_image, peek_image_format
 from mapproxy.cache import path
 from mapproxy.cache.base import TileCacheBase, tile_buffer
 
@@ -53,15 +53,12 @@ class FileCache(TileCacheBase):
             items = list(dimensions.keys())
             items.sort()
             dimensions_str = ['{key}-{value}'.format(key=i, value=dimensions[i].replace('/', '_')) for i in items]
-            cache_dir = os.path.join(self.cache_dir, '_'.join(dimensions_str))
         
-        if self.is_mixed:
-            location = self._tile_location(tile, self.cache_dir, 'jpeg', create_dir=create_dir, dimensions=dimensions)
-            if not os.path.exists(location):
-                tile.location = None
-                location = self._tile_location(tile, self.cache_dir, 'png', create_dir=create_dir, dimensions=dimensions)
-        else:
-            location = self._tile_location(tile, self.cache_dir, self.file_ext, create_dir=create_dir, dimensions=dimensions)
+        file_ext = self.file_ext
+        if self.is_mixed and tile.source:
+            data = tile.source.as_buffer()
+            file_ext = peek_image_format(data)
+        location = self._tile_location(tile, self.cache_dir, file_ext, create_dir=create_dir, dimensions=dimensions)
         tile.location = location
         return location
 

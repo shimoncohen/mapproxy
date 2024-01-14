@@ -21,7 +21,7 @@ from io import BytesIO
 
 from mapproxy.cache import path
 from mapproxy.cache.base import tile_buffer, TileCacheBase
-from mapproxy.image import ImageSource
+from mapproxy.image import ImageSource, peek_image_format
 from mapproxy.util import async_
 
 try:
@@ -71,14 +71,11 @@ class AzureBlobCache(TileCacheBase):
         return self._container_client_cache.client
 
     def tile_key(self, tile):
-        if self.is_mixed:
-            location = self._tile_location(tile, self.base_path, 'jpeg').lstrip('/')
-            blob = self.container_client.get_blob_client(location)
-            if not blob.exists():
-                tile.location = None
-                location = self._tile_location(tile, self.base_path, 'png').lstrip('/')
-        else:
-            location = self._tile_location(tile, self.base_path, self.file_ext).lstrip('/')
+        file_ext = self.file_ext
+        if self.is_mixed and tile.source:
+            data = tile.source.as_buffer()
+            file_ext = peek_image_format(data)
+        location = self._tile_location(tile, self.base_path, file_ext).lstrip('/')
         tile.location = location
         return location
 
